@@ -184,8 +184,21 @@ var updateCount = 0, newCount = 0, currentSort = 'price';
 var accessToken = null, tokenExpiry = 0;
 var sessionLowest = Infinity;
 const PROXY = 'https://macbook-hunter-proxy.sinimmorem.workers.dev/search?q=';
-var EXCLUDE = ['case','cover','sleeve','bag','charger','cable','adapter','keyboard','mouse','screen protector','skin','stand','hub','dock','power supply','palm rest','sticker','decal','shell','pouch','strap','repair','part','lcd','battery replacement'];
-
+var EXCLUDE = [
+'case','cover','sleeve','bag',
+'charger','cable','adapter',
+'keyboard','mouse',
+'screen','lcd','display',
+'battery','replacement',
+'skin','stand','hub','dock',
+'power supply','palm rest',
+'sticker','decal','shell',
+'pouch','strap','repair',
+'part','logic board',
+'motherboard','trackpad',
+'fan','hinge','speaker',
+'broken','for parts'
+]
 function log(msg, type) {
   type = type || 'info';
   var box = document.getElementById('logBox');
