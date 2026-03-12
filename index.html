@@ -216,7 +216,7 @@ function getToken() {
   if (accessToken && Date.now() < tokenExpiry) return Promise.resolve(accessToken);
   log('Получаю OAuth токен...', 'info');
   var creds = btoa(appId + ':' + certId);
-  return fetch(PROXY + encodeURIComponent('https://api.ebay.com/identity/v1/oauth2/token'), {
+  return fetch(PROXY), {
     method: 'POST',
     headers: { 'Authorization': 'Basic ' + creds, 'Content-Type': 'application/x-www-form-urlencoded' },
     body: 'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope'
