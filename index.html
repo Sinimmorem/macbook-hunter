@@ -442,6 +442,7 @@ if ('serviceWorker' in navigator) {
     .then(function() { log('✓ PWA готов', 'ok'); })
     .catch(function(e) { log('SW: ' + e.message, 'muted'); });
 }
+  document.getElementById('startBtn').disabled = false;
 
 var deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', function(e) {
