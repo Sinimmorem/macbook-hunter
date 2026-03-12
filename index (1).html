@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MacBook Hunter — eBay Tracker</title>
+<meta name="theme-color" content="#080810">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MacBook Hunter">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080810; --surface: #0f0f1a; --card: #13131f; --border: #1e1e32;
+    --accent: #ff6b35; --green: #00e676; --blue: #40c4ff;
+    --text: #e8e8f0; --muted: #4a4a6a; --warn: #ffd740; --red: #ff5252;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; padding: 24px 16px;
+    background-image: radial-gradient(ellipse 60% 40% at 80% 10%, rgba(255,107,53,.06) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 10% 80%, rgba(64,196,255,.05) 0%, transparent 60%); }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  /* HEADER */
+  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; gap: 16px; flex-wrap: wrap; }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 2px; line-height: 1; color: #fff; }
+  h1 span { color: var(--accent); }
+  .sub { font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-top: 4px; }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .live-badge { display: flex; align-items: center; gap: 7px; font-size: 11px; letter-spacing: 1px; color: var(--green); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+  .dot.off { background: var(--muted); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.3)} }
+  .next-update { font-size: 10px; color: var(--muted); text-align: right; }
+  .next-update b { color: var(--warn); }
+  .install-btn { padding: 7px 14px; background: rgba(64,196,255,.1); border: 1px solid var(--blue); border-radius: 8px; color: var(--blue); font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; transition: all .15s; display: none; }
+  .install-btn:hover { background: rgba(64,196,255,.2); }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  input, select { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; outline: none; width: 100%; transition: border-color .2s; }
+  input:focus, select:focus { border-color: var(--accent); }
+
+  /* BUTTONS */
+  .btn-row { display: flex; gap: 10px; }
+  .btn-start { flex: 1; padding: 13px; background: var(--accent); border: none; border-radius: 10px; color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; cursor: pointer; transition: all .2s; }
+  .btn-start:hover { background: #ff8255; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,107,53,.4); }
+  .btn-start:disabled { background: #2a2a3a; color: #444; transform: none; box-shadow: none; cursor: not-allowed; }
+  .btn-stop { padding: 13px 20px; background: transparent; border: 1px solid var(--border); border-radius: 10px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 12px; cursor: pointer; transition: all .2s; }
+  .btn-stop:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-csv { padding: 13px 20px; background: transparent; border: 1px solid var(--green); border-radius: 10px; color: var(--green); font-family: 'Space Mono', monospace; font-size: 11px; cursor: pointer; transition: all .2s; }
+  .btn-csv:hover { background: rgba(0,230,118,.1); }
+  .btn-csv:disabled { opacity: .3; cursor: not-allowed; }
+
+  /* ALERT BANNER */
+  .alert-banner { display: none; background: linear-gradient(135deg, rgba(255,107,53,.15), rgba(255,215,64,.1)); border: 1px solid var(--accent); border-radius: 12px; padding: 14px 18px; margin-bottom: 16px; animation: flashIn .4s ease; }
+  @keyframes flashIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+  .alert-banner.show { display: flex; align-items: center; gap: 12px; }
+  .alert-icon { font-size: 24px; flex-shrink: 0; }
+  .alert-text { flex: 1; }
+  .alert-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--accent); letter-spacing: 1px; }
+  .alert-desc { font-size: 11px; color: var(--text); margin-top: 2px; line-height: 1.5; }
+  .alert-price { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--green); }
+  .alert-close { background: transparent; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 4px; }
+
+  /* STATS */
+  .stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; flex: 1; min-width: 90px; }
+  .stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--accent); line-height: 1; }
+  .stat-val.green { color: var(--green); } .stat-val.blue { color: var(--blue); } .stat-val.red { color: var(--red); }
+  .stat-lbl { font-size: 9px; letter-spacing: 1.5px; color: var(--muted); margin-top: 2px; text-transform: uppercase; }
+
+  /* RESULTS */
+  .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .results-title { font-size: 10px; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; }
+  .sort-row { display: flex; gap: 6px; }
+  .sort-btn { padding: 5px 12px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; transition: all .15s; }
+  .sort-btn.active { border-color: var(--accent); color: var(--accent); }
+
+  .items-grid { display: flex; flex-direction: column; gap: 8px; }
+  .item-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; display: grid; grid-template-columns: 80px 1fr auto; gap: 14px; align-items: center; transition: border-color .2s, transform .15s; animation: slideIn .3s ease; position: relative; }
+  @keyframes slideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+  .item-card:hover { border-color: rgba(255,107,53,.35); transform: translateY(-1px); }
+  .item-card.is-new { border-color: rgba(0,230,118,.5); }
+  .item-card.is-cheapest { border-color: var(--warn); box-shadow: 0 0 16px rgba(255,215,64,.15); }
+
+  .new-badge { position: absolute; top: -1px; left: 14px; background: var(--green); color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: 1px; padding: 2px 8px; border-radius: 0 0 6px 6px; }
+  .cheapest-badge { position: absolute; top: -1px; right: 14px; background: var(--warn); color: #000; font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: 1px; padding: 2px 8px; border-radius: 0 0 6px 6px; }
+
+  .item-img { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; background: var(--border); }
+  .item-img-ph { width: 80px; height: 80px; border-radius: 8px; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 32px; }
+  .item-title { font-size: 12px; color: var(--text); line-height: 1.4; margin-bottom: 8px; }
+  .item-title a { color: var(--text); text-decoration: none; }
+  .item-title a:hover { color: var(--accent); }
+  .item-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag { font-size: 9px; letter-spacing: 1px; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; white-space: nowrap; }
+  .tag-buy { background: rgba(0,230,118,.1); color: var(--green); border: 1px solid rgba(0,230,118,.2); }
+  .tag-cond { background: rgba(64,196,255,.1); color: var(--blue); border: 1px solid rgba(64,196,255,.2); }
+  .tag-ship { background: rgba(255,215,64,.08); color: var(--warn); border: 1px solid rgba(255,215,64,.2); }
+
+  .item-price-block { text-align: right; flex-shrink: 0; min-width: 100px; }
+  .item-price { font-family: 'Bebas Neue', sans-serif; font-size: 34px; color: var(--green); line-height: 1; }
+  .item-price.warn { color: var(--warn); }
+  .item-buy-btn { display: block; margin-top: 8px; padding: 8px 16px; background: var(--accent); border: none; border-radius: 7px; color: #fff; font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 1px; cursor: pointer; text-decoration: none; text-align: center; transition: all .15s; }
+  .item-buy-btn:hover { background: #ff8255; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 12px; line-height: 2; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; display: block; }
+
+  /* LOG */
+  .log-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-top: 16px; }
+  .log-title { font-size: 9px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+  .log-box { font-size: 11px; line-height: 1.8; max-height: 120px; overflow-y: auto; }
+  .log-ok{color:var(--green)} .log-err{color:#ff5252} .log-info{color:var(--blue)} .log-warn{color:var(--warn)} .log-muted{color:var(--muted)}
+
+  .progress-wrap { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 16px; overflow: hidden; display: none; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--warn)); border-radius: 2px; transition: width .4s; }
+  .hint { font-size: 10px; color: var(--muted); padding: 8px 12px; background: rgba(64,196,255,.05); border-left: 2px solid var(--blue); border-radius: 0 6px 6px 0; margin-top: 10px; line-height: 1.8; }
+
+  ::-webkit-scrollbar{width:4px} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  @media(max-width:640px) {
+    .grid2,.grid4{grid-template-columns:1fr 1fr}
+    .item-card{grid-template-columns:1fr auto}
+    .item-img,.item-img-ph{display:none}
+    h1{font-size:36px}
+  }
+  @media(max-width:400px) { .grid2,.grid4{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div>
+      <h1>MacBook <span>Hunter</span></h1>
+      <div class="sub">// eBay Browse API · Production · PWA</div>
+    </div>
+    <div class="header-right">
+      <div class="live-badge"><div class="dot off" id="liveDot"></div><span id="liveText">ОСТАНОВЛЕН</span></div>
+      <div class="next-update" id="nextUpdate">—</div>
+      <button class="install-btn" id="installBtn">📲 Установить приложение</button>
+    </div>
+  </div>
+
+  <!-- ALERT BANNER -->
+  <div class="alert-banner" id="alertBanner">
+    <div class="alert-icon">🔥</div>
+    <div class="alert-text">
+      <div class="alert-title" id="alertTitle">Новый рекорд цены!</div>
+      <div class="alert-desc" id="alertDesc">—</div>
+    </div>
+    <div class="alert-price" id="alertPrice">—</div>
+    <button class="alert-close" onclick="document.getElementById('alertBanner').classList.remove('show')">✕</button>
+  </div>
+
+  <!-- CREDENTIALS -->
+  <div class="card">
+    <div class="card-title">🔑 eBay API Credentials</div>
+    <div class="grid2">
+      <div class="field">
+        <label>App ID (Client ID)</label>
+        <input type="text" id="appId" placeholder="MarinaKo-MacBookT-PRD-..." />
+      </div>
+      <div class="field">
+        <label>Cert ID (Client Secret)</label>
+        <input type="password" id="certId" placeholder="PRD-bf3e7de3c711-..." />
+      </div>
+    </div>
+    <div class="hint">📌 <a href="https://developer.ebay.com/my/keys" target="_blank" style="color:var(--blue)">developer.ebay.com/my/keys</a> → Production → MacBook Tracker. Ключи сохраняются автоматически.</div>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="card">
+    <div class="card-title">🔍 Параметры поиска</div>
+    <div class="grid4">
+      <div class="field"><label>Запрос</label><input type="text" id="query" value="MacBook" /></div>
+      <div class="field"><label>Цена от ($)</label><input type="number" id="minPrice" value="100" min="0" /></div>
+      <div class="field"><label>Цена до ($)</label><input type="number" id="maxPrice" value="600" min="1" /></div>
+      <div class="field"><label>Обновление</label>
+        <select id="interval">
+          <option value="600000">10 мин</option>
+          <option value="300000">5 мин</option>
+          <option value="900000">15 мин</option>
+          <option value="60000">1 мин</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-start" id="startBtn">▶ ЗАПУСТИТЬ</button>
+      <button class="btn-stop" id="stopBtn" disabled>⏹ СТОП</button>
+      <button class="btn-csv" id="csvBtn" disabled>⬇ CSV</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat"><div class="stat-val green" id="statFound">0</div><div class="stat-lbl">Найдено</div></div>
+    <div class="stat"><div class="stat-val" id="statNew">0</div><div class="stat-lbl">Новых</div></div>
+    <div class="stat"><div class="stat-val blue" id="statMin">—</div><div class="stat-lbl">Мин. цена</div></div>
+    <div class="stat"><div class="stat-val red" id="statRecord">—</div><div class="stat-lbl">Рекорд сессии</div></div>
+    <div class="stat"><div class="stat-val" id="statUpdates">0</div><div class="stat-lbl">Обновлений</div></div>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="results-header">
+    <div class="results-title">● Результаты</div>
+    <div class="sort-row">
+      <button class="sort-btn active" id="sortPrice" onclick="sortBy('price')">↑ Цена</button>
+      <button class="sort-btn" id="sortNew" onclick="sortBy('new')">● Новые</button>
+    </div>
+  </div>
+
+  <div class="items-grid" id="itemsGrid">
+    <div class="empty"><span class="empty-icon">💻</span>Введи App ID и Cert ID, нажми ЗАПУСТИТЬ</div>
+  </div>
+
+  <div class="log-wrap">
+    <div class="log-title">// Лог</div>
+    <div class="log-box" id="logBox"><span class="log-muted">Готов к работе.</span></div>
+  </div>
+
+</div>
+<script>
+// ── State ──────────────────────────────────────────────────────
+let items = [], seenIds = new Set();
+let intervalId = null, countdownId = null;
+let updateCount = 0, newCount = 0, currentSort = 'price';
+let accessToken = null, tokenExpiry = 0;
+let sessionLowestPrice = Infinity; // track lowest price seen this session
+
+const PROXY = 'https://corsproxy.io/?';
+
+// Keywords that indicate accessories/non-devices
+const EXCLUDE_KEYWORDS = [
+  'case','cover','sleeve','bag','charger','cable','adapter','keyboard','mouse',
+  'screen protector','skin','stand','hub','dock','power supply','magsafe replacement',
+  'palm rest','sticker','decal','shell','pouch','strap','repair','part','lcd','battery replacement',
+  'чехол','кабель','зарядка','аксессуар'
+];
+
+// ── Logging ────────────────────────────────────────────────────
+function log(msg, type='info') {
+  const box = document.getElementById('logBox');
+  const d = document.createElement('div');
+  d.className = 'log-' + type;
+  d.textContent = `[${new Date().toLocaleTimeString('ru-RU')}] ${msg}`;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+  if (box.children.length > 80) box.removeChild(box.firstChild);
+}
+
+// ── Filter accessories ─────────────────────────────────────────
+function isAccessory(title) {
+  const t = title.toLowerCase();
+  return EXCLUDE_KEYWORDS.some(kw => t.includes(kw));
+}
+
+// ── OAuth token ────────────────────────────────────────────────
+async function getToken() {
+  const appId = document.getElementById('appId').value.trim();
+  const certId = document.getElementById('certId').value.trim();
+  if (!appId || !certId) throw new Error('Введи App ID и Cert ID');
+  if (accessToken && Date.now() < tokenExpiry) return accessToken;
+  log('Получаю OAuth токен...', 'info');
+  const creds = btoa(`${appId}:${certId}`);
+  const resp = await fetch(PROXY + encodeURIComponent('https://api.ebay.com/identity/v1/oauth2/token'), {
+    method: 'POST',
+    headers: { 'Authorization': `Basic ${creds}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope'
+  });
+  if (!resp.ok) { const t = await resp.text(); throw new Error(`Токен ${resp.status}: ${t.slice(0,120)}`); }
+  const data = await resp.json();
+  if (data.error) throw new Error(`Токен: ${data.error_description || data.error}`);
+  accessToken = data.access_token;
+  tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
+  log('✓ Токен получен', 'ok');
+  return accessToken;
+}
+
+// ── Fetch items ────────────────────────────────────────────────
+async function fetchItems() {
+  const token = await getToken();
+  const query = document.getElementById('query').value.trim() || 'MacBook';
+  const minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+  const maxPrice = parseFloat(document.getElementById('maxPrice').value) || 600;
+
+  const filterParts = [
+    `price:[${minPrice}..${maxPrice}]`,
+    'priceCurrency:USD',
+    'buyingOptions:{FIXED_PRICE}'
+  ];
+
+  const params = new URLSearchParams({
+    q: query,
+    filter: filterParts.join(','),
+    sort: 'newlyListed',
+    limit: '50'
+  });
+
+  log(`Поиск: "${query}" $${minPrice}–$${maxPrice}...`, 'info');
+
+  const resp = await fetch(PROXY + encodeURIComponent(`https://api.ebay.com/buy/browse/v1/item_summary/search?${params}`), {
+    headers: { 'Authorization': `Bearer ${token}`, 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_US' }
+  });
+  if (!resp.ok) { const t = await resp.text(); throw new Error(`Browse API ${resp.status}: ${t.slice(0,150)}`); }
+  const data = await resp.json();
+  if (data.errors) throw new Error(data.errors[0]?.message || 'API error');
+
+  const raw = data.itemSummaries || [];
+  const filtered = raw.filter(item => !isAccessory(item.title || ''));
+  const excluded = raw.length - filtered.length;
+  if (excluded > 0) log(`Отфильтровано аксессуаров: ${excluded}`, 'muted');
+
+  return filtered.map(item => ({
+    id: item.itemId,
+    title: item.title || '',
+    url: item.itemWebUrl || '',
+    price: parseFloat(item.price?.value || 9999),
+    img: item.thumbnailImages?.[0]?.imageUrl || item.image?.imageUrl || null,
+    condition: item.condition || '',
+    shipping: item.shippingOptions?.[0]?.shippingCost?.value === '0.00' ? 'Free shipping'
+      : item.shippingOptions?.[0]?.shippingCost ? `+$${item.shippingOptions[0].shippingCost.value}` : '',
+    seller: item.seller?.username || '',
+    isNew: !seenIds.has(item.itemId)
+  }));
+}
+
+// ── Alert banner ───────────────────────────────────────────────
+function showAlert(item) {
+  document.getElementById('alertTitle').textContent = '🔥 Новый рекорд цены!';
+  document.getElementById('alertDesc').textContent = item.title.slice(0, 80);
+  document.getElementById('alertPrice').textContent = '$' + item.price.toFixed(0);
+  document.getElementById('alertBanner').classList.add('show');
+
+  // Push notification
+  if (Notification.permission === 'granted') {
+    new Notification('🔥 MacBook Hunter: Рекордная цена!', {
+      body: `$${item.price.toFixed(0)} — ${item.title.slice(0, 60)}`,
+      tag: 'price-record'
+    });
+  }
+}
+
+// ── Main fetch cycle ───────────────────────────────────────────
+async function runFetch() {
+  const pw = document.getElementById('progressWrap'), pb = document.getElementById('progressBar');
+  pw.style.display = 'block'; pb.style.background = ''; pb.style.width = '20%';
+  try {
+    const fetched = await fetchItems();
+    pb.style.width = '80%';
+
+    let newItems = 0;
+    let newRecord = null;
+
+    fetched.forEach(item => {
+      if (item.isNew) {
+        seenIds.add(item.id);
+        newItems++;
+        newCount++;
+        // Check if this is a new price record
+        if (item.price < sessionLowestPrice) {
+          sessionLowestPrice = item.price;
+          newRecord = item;
+        }
+      }
+    });
+
+    items = fetched;
+    updateCount++;
+    renderItems();
+    updateStats();
+    pb.style.width = '100%';
+    log(`✓ ${fetched.length} устройств, новых: ${newItems}`, 'ok');
+
+    // Show alert if new price record
+    if (newRecord) {
+      showAlert(newRecord);
+      log(`🔥 РЕКОРД ЦЕНЫ: $${newRecord.price} — ${newRecord.title.slice(0,50)}`, 'warn');
+    } else if (newItems > 0 && Notification.permission === 'granted') {
+      // Regular new items notification
+      const cheap = [...fetched].filter(i=>i.isNew).sort((a,b)=>a.price-b.price)[0];
+      new Notification(`MacBook Hunter: ${newItems} новых товаров`, {
+        body: cheap ? `От $${cheap.price.toFixed(0)} — ${cheap.title.slice(0,50)}` : '',
+        tag: 'new-items'
+      });
+    }
+
+    setTimeout(() => { pw.style.display = 'none'; }, 800);
+  } catch(e) {
+    pb.style.width = '100%'; pb.style.background = '#ff5252';
+    log(`❌ ${e.message}`, 'err');
+    setTimeout(() => { pw.style.display = 'none'; }, 2000);
+  }
+}
+
+// ── Render ─────────────────────────────────────────────────────
+function renderItems() {
+  const grid = document.getElementById('itemsGrid');
+  if (!items.length) {
+    grid.innerHTML = '<div class="empty"><span class="empty-icon">📭</span>Ничего не найдено. Попробуй изменить запрос или диапазон цен.</div>';
+    return;
+  }
+  const sorted = [...items].sort((a,b) => currentSort === 'price' ? a.price - b.price : (b.isNew?1:0)-(a.isNew?1:0));
+  const minP = Math.min(...items.map(i=>i.price));
+
+  grid.innerHTML = sorted.map(item => {
+    const isCheapest = item.price === minP;
+    return `
+    <div class="item-card ${item.isNew?'is-new':''} ${isCheapest?'is-cheapest':''}">
+      ${item.isNew ? '<div class="new-badge">NEW</div>' : ''}
+      ${isCheapest ? '<div class="cheapest-badge">⭐ ДЕШЕВЛЕ ВСЕХ</div>' : ''}
+      ${item.img ? `<img class="item-img" src="${item.img}" alt="" onerror="this.outerHTML='<div class=item-img-ph>💻</div>'">` : '<div class="item-img-ph">💻</div>'}
+      <div>
+        <div class="item-title"><a href="${item.url}" target="_blank">${esc(item.title)}</a></div>
+        <div class="item-tags">
+          <span class="tag tag-buy">Buy It Now</span>
+          ${item.condition ? `<span class="tag tag-cond">${esc(item.condition)}</span>` : ''}
+          ${item.shipping ? `<span class="tag tag-ship">${esc(item.shipping)}</span>` : ''}
+        </div>
+      </div>
+      <div class="item-price-block">
+        <div class="item-price ${item.price>500?'warn':''}">$${item.price.toFixed(0)}</div>
+        <a href="${item.url}" target="_blank" class="item-buy-btn">КУПИТЬ</a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Stats ──────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('statFound').textContent = items.length;
+  document.getElementById('statNew').textContent = newCount;
+  document.getElementById('statUpdates').textContent = updateCount;
+  const prices = items.map(i=>i.price).filter(p=>p<9999);
+  document.getElementById('statMin').textContent = prices.length ? '$'+Math.min(...prices).toFixed(0) : '—';
+  document.getElementById('statRecord').textContent = sessionLowestPrice < Infinity ? '$'+sessionLowestPrice.toFixed(0) : '—';
+  document.getElementById('csvBtn').disabled = items.length === 0;
+}
+
+// ── Countdown ─────────────────────────────────────────────────
+function startCountdown(ms) {
+  clearInterval(countdownId);
+  const end = Date.now() + ms;
+  countdownId = setInterval(() => {
+    const left = Math.max(0, Math.round((end-Date.now())/1000));
+    document.getElementById('nextUpdate').innerHTML = `Следующее: <b>${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}</b>`;
+  }, 1000);
+}
+
+// ── Start / Stop ───────────────────────────────────────────────
+function start() {
+  if (!document.getElementById('appId').value.trim()) { alert('Введи App ID'); return; }
+  if (!document.getElementById('certId').value.trim()) { alert('Введи Cert ID'); return; }
+  const ms = parseInt(document.getElementById('interval').value);
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('stopBtn').disabled = false;
+  document.getElementById('liveDot').classList.remove('off');
+  document.getElementById('liveText').textContent = 'РАБОТАЕТ';
+  if (Notification.permission === 'default') Notification.requestPermission();
+  log('▶ Мониторинг запущен', 'ok');
+  runFetch();
+  intervalId = setInterval(() => { runFetch(); startCountdown(ms); }, ms);
+  startCountdown(ms);
+}
+
+function stop() {
+  clearInterval(intervalId); clearInterval(countdownId); intervalId = null;
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
+  document.getElementById('liveDot').classList.add('off');
+  document.getElementById('liveText').textContent = 'ОСТАНОВЛЕН';
+  document.getElementById('nextUpdate').textContent = '—';
+  log('⏹ Остановлен', 'warn');
+}
+
+function sortBy(type) {
+  currentSort = type;
+  document.getElementById('sortPrice').classList.toggle('active', type==='price');
+  document.getElementById('sortNew').classList.toggle('active', type==='new');
+  renderItems();
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── CSV ────────────────────────────────────────────────────────
+document.getElementById('startBtn').addEventListener('click', start);
+document.getElementById('stopBtn').addEventListener('click', stop);
+document.getElementById('csvBtn').addEventListener('click', () => {
+  if (!items.length) return;
+  const csv = [['Title','Price','Condition','Shipping','URL','Seller'],
+    ...items.map(i=>[i.title,i.price,i.condition,i.shipping,i.url,i.seller])]
+    .map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `macbook_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  log('📥 CSV сохранён', 'ok');
+});
+
+// ── Save / load credentials ───────────────────────────────────
+window.addEventListener('load', () => {
+  try {
+    const s = localStorage.getItem('ebay_creds');
+    if (s) {
+      const {a,c} = JSON.parse(s);
+      if(a) document.getElementById('appId').value=a;
+      if(c) document.getElementById('certId').value=c;
+      log('Учётные данные загружены', 'muted');
+    }
+  } catch(e){}
+  injectPWA();
+});
+['appId','certId'].forEach(id => document.getElementById(id).addEventListener('blur', () => {
+  try { localStorage.setItem('ebay_creds', JSON.stringify({a:document.getElementById('appId').value, c:document.getElementById('certId').value})); } catch(e){}
+}));
+
+// ── PWA: inline manifest + service worker ─────────────────────
+function injectPWA() {
+  // Inline manifest via blob URL
+  if ('serviceWorker' in navigator) {
+    const swCode = `
+      self.addEventListener('install', e => self.skipWaiting());
+      self.addEventListener('activate', e => clients.claim());
+      self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
+    `;
+    const swBlob = new Blob([swCode], {type: 'application/javascript'});
+    const swUrl = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl).then(() => {
+      log('✓ PWA готов — можно установить на телефон', 'ok');
+    }).catch(err => log('SW: ' + err.message, 'muted'));
+  }
+}
+
+// ── PWA Install prompt ─────────────────────────────────────────
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'block';
+  log('📲 Доступна установка как приложение', 'info');
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  log(outcome === 'accepted' ? '✓ Приложение установлено!' : 'Установка отменена', outcome === 'accepted' ? 'ok' : 'muted');
+  deferredPrompt = null;
+  document.getElementById('installBtn').style.display = 'none';
+});
+window.addEventListener('appinstalled', () => log('✓ MacBook Hunter установлен на устройство', 'ok'));
+</script>
+</body>
+</html>
