@@ -2,7 +2,7 @@
   "name": "MacBook Hunter",
   "short_name": "MBHunter",
   "description": "eBay MacBook price tracker",
-  "start_url": "/macbook-hunter/",
+  "start_url": "./",
   "scope": "/macbook-hunter/",
   "display": "standalone",
   "background_color": "#080810",
