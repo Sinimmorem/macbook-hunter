@@ -4,139 +4,155 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MacBook Hunter</title>
+<meta name="theme-color" content="#080810">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MacBook Hunter">
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 
 <style>
-body{
-font-family:Arial;
-background:#080810;
-color:white;
-padding:20px
-}
-
-button{
-padding:10px 20px;
-font-size:16px;
-cursor:pointer
-}
-
-input{
-padding:8px;
-margin:5px
-}
-
-#log{
-margin-top:20px;
-font-size:14px
-}
-
-.item{
-margin-top:10px;
-padding:10px;
-background:#111;
-border-radius:6px
-}
+:root{--bg:#080810;--surface:#0f0f1a;--card:#13131f;--border:#1e1e32;--accent:#ff6b35;--green:#00e676;--blue:#40c4ff;--text:#e8e8f0;--muted:#4a4a6a;--warn:#ffd740;--red:#ff5252}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;min-height:100vh;padding:24px 16px}
+.wrap{max-width:960px;margin:0 auto}
+.header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;gap:16px;flex-wrap:wrap}
+h1{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;line-height:1;color:#fff}
+h1 span{color:var(--accent)}
+.sub{font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px}
 </style>
-
 </head>
+
 <body>
 
-<h2>MacBook Hunter</h2>
+<div class="wrap">
+
+<h1>MacBook <span>Hunter</span></h1>
 
 <div>
 App ID<br>
-<input id="appId"><br>
+<input id="appId"><br><br>
 
 Cert ID<br>
-<input id="certId" type="password"><br>
+<input id="certId" type="password"><br><br>
 
-<button onclick="start()">ЗАПУСТИТЬ</button>
-<button onclick="stop()">СТОП</button>
+<button onclick="start()">▶ ЗАПУСТИТЬ</button>
+<button onclick="stop()">⏹ СТОП</button>
 </div>
 
-<div id="results"></div>
-
+<div id="items"></div>
 <div id="log"></div>
+
+</div>
 
 <script>
 
-const PROXY = "https://macbook-hunter-proxy.sinimmorem.workers.dev/"
+var accessToken=null
+var tokenExpiry=0
+var timer=null
 
-let timer = null
-let token = null
+const PROXY="https://macbook-hunter-proxy.sinimmorem.workers.dev/"
 
 function log(t){
-document.getElementById("log").innerHTML += "<div>"+t+"</div>"
+document.getElementById("log").innerHTML+="<div>"+t+"</div>"
 }
 
-async function getToken(){
+function getToken(){
 
-let appId=document.getElementById("appId").value.trim()
-let certId=document.getElementById("certId").value.trim()
+var appId=document.getElementById('appId').value.trim()
+var certId=document.getElementById('certId').value.trim()
 
 if(!appId||!certId){
-throw new Error("Введи ключи")
+return Promise.reject(new Error("Введи ключи"))
 }
 
-let creds=btoa(appId+":"+certId)
+if(accessToken && Date.now()<tokenExpiry){
+return Promise.resolve(accessToken)
+}
 
-let r=await fetch(PROXY,{
-method:"POST",
+log("Получаю OAuth токен...")
+
+var creds=btoa(appId+":"+certId)
+
+return fetch(PROXY,{
+method:'POST',
 headers:{
-Authorization:"Basic "+creds,
-"Content-Type":"application/x-www-form-urlencoded"
+'Authorization':'Basic '+creds,
+'Content-Type':'application/x-www-form-urlencoded'
 },
-body:"grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope"
+body:'grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope'
 })
 
-let data=await r.json()
+.then(function(r){
+if(!r.ok){
+return r.text().then(function(t){
+throw new Error("OAuth "+r.status+" "+t)
+})
+}
+return r.json()
+})
 
-token=data.access_token
+.then(function(data){
 
-return token
+accessToken=data.access_token
+tokenExpiry=Date.now()+(data.expires_in*1000)
+
+log("✓ Токен получен")
+
+return accessToken
+})
+
 }
 
-async function loadItems(){
+function fetchItems(){
 
-if(!token){
-await getToken()
-}
+return getToken().then(function(token){
 
-let url="https://api.ebay.com/buy/browse/v1/item_summary/search?q=MacBook&limit=10"
+var url="https://api.ebay.com/buy/browse/v1/item_summary/search?q=MacBook&limit=10"
 
-let r=await fetch(PROXY+encodeURIComponent(url),{
+return fetch(PROXY+encodeURIComponent(url),{
 headers:{
 Authorization:"Bearer "+token,
 "X-EBAY-C-MARKETPLACE-ID":"EBAY_US"
 }
 })
 
-let data=await r.json()
+})
+.then(function(r){return r.json()})
+.then(function(data){
 
-let html=""
+var html=""
 
 if(data.itemSummaries){
-data.itemSummaries.forEach(i=>{
+
+data.itemSummaries.forEach(function(i){
+
 html+=`
-<div class="item">
+<div>
 <b>${i.title}</b><br>
 $${i.price.value}<br>
-<a href="${i.itemWebUrl}" target="_blank">открыть</a>
+<a href="${i.itemWebUrl}" target="_blank">Открыть</a>
+<hr>
 </div>
 `
+
 })
-}
-
-document.getElementById("results").innerHTML=html
 
 }
 
-async function start(){
+document.getElementById("items").innerHTML=html
 
-log("запуск...")
+})
 
-await loadItems()
+}
 
-timer=setInterval(loadItems,60000)
+function start(){
+
+log("▶ старт")
+
+fetchItems()
+
+timer=setInterval(fetchItems,60000)
 
 }
 
@@ -144,7 +160,7 @@ function stop(){
 
 clearInterval(timer)
 
-log("остановлено")
+log("⏹ остановлено")
 
 }
 
