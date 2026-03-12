@@ -10,7 +10,6 @@
 <meta name="apple-mobile-web-app-title" content="MacBook Hunter">
 <link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
-
 <style>
 :root{--bg:#080810;--surface:#0f0f1a;--card:#13131f;--border:#1e1e32;--accent:#ff6b35;--green:#00e676;--blue:#40c4ff;--text:#e8e8f0;--muted:#4a4a6a;--warn:#ffd740;--red:#ff5252}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -20,151 +19,447 @@ body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;m
 h1{font-family:'Bebas Neue',sans-serif;font-size:52px;letter-spacing:2px;line-height:1;color:#fff}
 h1 span{color:var(--accent)}
 .sub{font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:4px}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.live-badge{display:flex;align-items:center;gap:7px;font-size:11px;letter-spacing:1px;color:var(--green)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+.dot.off{background:var(--muted);animation:none}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
+.next-update{font-size:10px;color:var(--muted);text-align:right}
+.next-update b{color:var(--warn)}
+.install-btn{padding:7px 14px;background:rgba(64,196,255,.1);border:1px solid var(--blue);border-radius:8px;color:var(--blue);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;display:none}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
+.card-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+label{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+input,select{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;outline:none;width:100%}
+input:focus,select:focus{border-color:var(--accent)}
+.btn-row{display:flex;gap:10px}
+.btn-start{flex:1;padding:13px;background:var(--accent);border:none;border-radius:10px;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;cursor:pointer}
+.btn-start:disabled{background:#2a2a3a;color:#444;cursor:not-allowed}
+.btn-stop{padding:13px 20px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;cursor:pointer}
+.btn-csv{padding:13px 20px;background:transparent;border:1px solid var(--green);border-radius:10px;color:var(--green);font-family:'Space Mono',monospace;font-size:11px;cursor:pointer}
+.btn-csv:disabled{opacity:.3;cursor:not-allowed}
+.alert-banner{display:none;background:linear-gradient(135deg,rgba(255,107,53,.15),rgba(255,215,64,.1));border:1px solid var(--accent);border-radius:12px;padding:14px 18px;margin-bottom:16px}
+.alert-banner.show{display:flex;align-items:center;gap:12px}
+.alert-icon{font-size:24px;flex-shrink:0}
+.alert-text{flex:1}
+.alert-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);letter-spacing:1px}
+.alert-desc{font-size:11px;color:var(--text);margin-top:2px;line-height:1.5}
+.alert-price{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--green)}
+.alert-close{background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px}
+.stats{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;flex:1;min-width:90px}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);line-height:1}
+.stat-val.green{color:var(--green)}.stat-val.blue{color:var(--blue)}.stat-val.red{color:var(--red)}
+.stat-lbl{font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-top:2px;text-transform:uppercase}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.results-title{font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase}
+.sort-row{display:flex;gap:6px}
+.sort-btn{padding:5px 12px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer}
+.sort-btn.active{border-color:var(--accent);color:var(--accent)}
+.items-grid{display:flex;flex-direction:column;gap:8px}
+.item-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:grid;grid-template-columns:80px 1fr auto;gap:14px;align-items:center;position:relative;animation:slideIn .3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.item-card.is-new{border-color:rgba(0,230,118,.5)}
+.item-card.is-cheapest{border-color:var(--warn);box-shadow:0 0 16px rgba(255,215,64,.15)}
+.new-badge{position:absolute;top:-1px;left:14px;background:var(--green);color:#000;font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:0 0 6px 6px}
+.cheapest-badge{position:absolute;top:-1px;right:14px;background:var(--warn);color:#000;font-family:'Bebas Neue',sans-serif;font-size:10px;letter-spacing:1px;padding:2px 8px;border-radius:0 0 6px 6px}
+.item-img{width:80px;height:80px;border-radius:8px;object-fit:cover;background:var(--border)}
+.item-img-ph{width:80px;height:80px;border-radius:8px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:32px}
+.item-title{font-size:12px;color:var(--text);line-height:1.4;margin-bottom:8px}
+.item-title a{color:var(--text);text-decoration:none}
+.item-title a:hover{color:var(--accent)}
+.item-tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:9px;letter-spacing:1px;padding:3px 8px;border-radius:4px;text-transform:uppercase;white-space:nowrap}
+.tag-buy{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.2)}
+.tag-cond{background:rgba(64,196,255,.1);color:var(--blue);border:1px solid rgba(64,196,255,.2)}
+.tag-ship{background:rgba(255,215,64,.08);color:var(--warn);border:1px solid rgba(255,215,64,.2)}
+.item-price-block{text-align:right;flex-shrink:0;min-width:100px}
+.item-price{font-family:'Bebas Neue',sans-serif;font-size:34px;color:var(--green);line-height:1}
+.item-price.warn{color:var(--warn)}
+.item-buy-btn{display:block;margin-top:8px;padding:8px 16px;background:var(--accent);border:none;border-radius:7px;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;cursor:pointer;text-decoration:none;text-align:center}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:12px;line-height:2}
+.empty-icon{font-size:48px;margin-bottom:12px;display:block}
+.log-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:16px}
+.log-title{font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.log-box{font-size:11px;line-height:1.8;max-height:120px;overflow-y:auto}
+.log-ok{color:var(--green)}.log-err{color:#ff5252}.log-info{color:var(--blue)}.log-warn{color:var(--warn)}.log-muted{color:var(--muted)}
+.progress-wrap{height:3px;background:var(--border);border-radius:2px;margin-bottom:16px;overflow:hidden;display:none}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--warn));border-radius:2px;transition:width .4s}
+.hint{font-size:10px;color:var(--muted);padding:8px 12px;background:rgba(64,196,255,.05);border-left:2px solid var(--blue);border-radius:0 6px 6px 0;margin-top:10px;line-height:1.8}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+@media(max-width:640px){.grid2,.grid4{grid-template-columns:1fr 1fr}.item-card{grid-template-columns:1fr auto}.item-img,.item-img-ph{display:none}h1{font-size:36px}}
+@media(max-width:400px){.grid2,.grid4{grid-template-columns:1fr}}
 </style>
 </head>
-
 <body>
-
 <div class="wrap">
-
-<h1>MacBook <span>Hunter</span></h1>
-
-<div>
-App ID<br>
-<input id="appId"><br><br>
-
-Cert ID<br>
-<input id="certId" type="password"><br><br>
-
-<button onclick="start()">▶ ЗАПУСТИТЬ</button>
-<button onclick="stop()">⏹ СТОП</button>
+<div class="header">
+  <div>
+    <h1>MacBook <span>Hunter</span></h1>
+    <div class="sub">// eBay Browse API · Production · PWA</div>
+  </div>
+  <div class="header-right">
+    <div class="live-badge"><div class="dot off" id="liveDot"></div><span id="liveText">ОСТАНОВЛЕН</span></div>
+    <div class="next-update" id="nextUpdate">—</div>
+    <button class="install-btn" id="installBtn">📲 Установить</button>
+  </div>
 </div>
 
-<div id="items"></div>
-<div id="log"></div>
+<div class="alert-banner" id="alertBanner">
+  <div class="alert-icon">🔥</div>
+  <div class="alert-text">
+    <div class="alert-title" id="alertTitle">Новый рекорд!</div>
+    <div class="alert-desc" id="alertDesc">—</div>
+  </div>
+  <div class="alert-price" id="alertPrice">—</div>
+  <button class="alert-close" id="alertClose">✕</button>
+</div>
 
+<div class="card">
+  <div class="card-title">🔑 eBay API Credentials</div>
+  <div class="grid2">
+    <div class="field"><label>App ID (Client ID)</label><input type="text" id="appId" placeholder="MarinaKo-MacBookT-PRD-..."></div>
+    <div class="field"><label>Cert ID (Client Secret)</label><input type="password" id="certId" placeholder="PRD-bf3e7de3c711-..."></div>
+  </div>
+  <div class="hint">📌 <a href="https://developer.ebay.com/my/keys" target="_blank" style="color:var(--blue)">developer.ebay.com/my/keys</a> → Production → MacBook Tracker. Ключи сохраняются автоматически.</div>
+</div>
+
+<div class="card">
+  <div class="card-title">🔍 Параметры поиска</div>
+  <div class="grid4">
+    <div class="field"><label>Запрос</label><input type="text" id="query" value="MacBook"></div>
+    <div class="field"><label>Цена от ($)</label><input type="number" id="minPrice" value="100" min="0"></div>
+    <div class="field"><label>Цена до ($)</label><input type="number" id="maxPrice" value="600" min="1"></div>
+    <div class="field"><label>Обновление</label>
+      <select id="interval">
+        <option value="600000">10 мин</option>
+        <option value="300000">5 мин</option>
+        <option value="900000">15 мин</option>
+        <option value="60000">1 мин</option>
+      </select>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-start" id="startBtn">▶ ЗАПУСТИТЬ</button>
+    <button class="btn-stop" id="stopBtn" disabled>⏹ СТОП</button>
+    <button class="btn-csv" id="csvBtn" disabled>⬇ CSV</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val green" id="statFound">0</div><div class="stat-lbl">Найдено</div></div>
+  <div class="stat"><div class="stat-val" id="statNew">0</div><div class="stat-lbl">Новых</div></div>
+  <div class="stat"><div class="stat-val blue" id="statMin">—</div><div class="stat-lbl">Мин. цена</div></div>
+  <div class="stat"><div class="stat-val red" id="statRecord">—</div><div class="stat-lbl">Рекорд сессии</div></div>
+  <div class="stat"><div class="stat-val" id="statUpdates">0</div><div class="stat-lbl">Обновлений</div></div>
+</div>
+
+<div class="progress-wrap" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
+
+<div class="results-header">
+  <div class="results-title">● Результаты</div>
+  <div class="sort-row">
+    <button class="sort-btn active" id="sortPrice">↑ Цена</button>
+    <button class="sort-btn" id="sortNew">● Новые</button>
+  </div>
+</div>
+
+<div class="items-grid" id="itemsGrid">
+  <div class="empty"><span class="empty-icon">💻</span>Введи App ID и Cert ID, нажми ЗАПУСТИТЬ</div>
+</div>
+
+<div class="log-wrap">
+  <div class="log-title">// Лог</div>
+  <div class="log-box" id="logBox"><span class="log-muted">Готов к работе.</span></div>
+</div>
 </div>
 
 <script>
+var items = [], seenIds = new Set();
+var intervalId = null, countdownId = null;
+var updateCount = 0, newCount = 0, currentSort = 'price';
+var accessToken = null, tokenExpiry = 0;
+var sessionLowest = Infinity;
+const PROXY = 'https://macbook-hunter-proxy.sinimmorem.workers.dev/';
+var EXCLUDE = ['case','cover','sleeve','bag','charger','cable','adapter','keyboard','mouse','screen protector','skin','stand','hub','dock','power supply','palm rest','sticker','decal','shell','pouch','strap','repair','part','lcd','battery replacement'];
 
-var accessToken=null
-var tokenExpiry=0
-var timer=null
-
-const PROXY="https://macbook-hunter-proxy.sinimmorem.workers.dev/"
-
-function log(t){
-document.getElementById("log").innerHTML+="<div>"+t+"</div>"
+function log(msg, type) {
+  type = type || 'info';
+  var box = document.getElementById('logBox');
+  var d = document.createElement('div');
+  d.className = 'log-' + type;
+  d.textContent = '[' + new Date().toLocaleTimeString('ru-RU') + '] ' + msg;
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+  if (box.children.length > 80) box.removeChild(box.firstChild);
 }
 
-function getToken(){
-
-var appId=document.getElementById('appId').value.trim()
-var certId=document.getElementById('certId').value.trim()
-
-if(!appId||!certId){
-return Promise.reject(new Error("Введи ключи"))
+function isAccessory(title) {
+  var t = (title || '').toLowerCase();
+  for (var i = 0; i < EXCLUDE.length; i++) {
+    if (t.indexOf(EXCLUDE[i]) !== -1) return true;
+  }
+  return false;
 }
 
-if(accessToken && Date.now()<tokenExpiry){
-return Promise.resolve(accessToken)
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-log("Получаю OAuth токен...")
-
-var creds=btoa(appId+":"+certId)
-
-return fetch(PROXY,{
-method:'POST',
-headers:{
-'Authorization':'Basic '+creds,
-'Content-Type':'application/x-www-form-urlencoded'
-},
-body:'grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope'
-})
-
-.then(function(r){
-if(!r.ok){
-return r.text().then(function(t){
-throw new Error("OAuth "+r.status+" "+t)
-})
-}
-return r.json()
-})
-
-.then(function(data){
-
-accessToken=data.access_token
-tokenExpiry=Date.now()+(data.expires_in*1000)
-
-log("✓ Токен получен")
-
-return accessToken
-})
-
+function getToken() {
+  var appId = document.getElementById('appId').value.trim();
+  var certId = document.getElementById('certId').value.trim();
+  if (!appId || !certId) return Promise.reject(new Error('Введи App ID и Cert ID'));
+  if (accessToken && Date.now() < tokenExpiry) return Promise.resolve(accessToken);
+  log('Получаю OAuth токен...', 'info');
+  var creds = btoa(appId + ':' + certId);
+  return fetch(PROXY, {
+    method: 'POST',
+    headers: { 'Authorization': 'Basic ' + creds, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope'
+  }).then(function(r) {
+    if (!r.ok) return r.text().then(function(t) { throw new Error('Токен ' + r.status + ': ' + t.slice(0,120)); });
+    return r.json();
+  }).then(function(data) {
+    if (data.error) throw new Error('Токен: ' + (data.error_description || data.error));
+    accessToken = data.access_token;
+    tokenExpiry = Date.now() + (data.expires_in - 60) * 1000;
+    log('✓ Токен получен', 'ok');
+    return accessToken;
+  });
 }
 
-function fetchItems(){
-
-return getToken().then(function(token){
-
-var url="https://api.ebay.com/buy/browse/v1/item_summary/search?q=MacBook&limit=10"
-
-return fetch(PROXY+encodeURIComponent(url),{
-headers:{
-Authorization:"Bearer "+token,
-"X-EBAY-C-MARKETPLACE-ID":"EBAY_US"
-}
-})
-
-})
-.then(function(r){return r.json()})
-.then(function(data){
-
-var html=""
-
-if(data.itemSummaries){
-
-data.itemSummaries.forEach(function(i){
-
-html+=`
-<div>
-<b>${i.title}</b><br>
-$${i.price.value}<br>
-<a href="${i.itemWebUrl}" target="_blank">Открыть</a>
-<hr>
-</div>
-`
-
-})
-
-}
-
-document.getElementById("items").innerHTML=html
-
-})
-
-}
-
-function start(){
-
-log("▶ старт")
-
-fetchItems()
-
-timer=setInterval(fetchItems,60000)
-
+function fetchItems() {
+  return getToken().then(function(token) {
+    var query = document.getElementById('query').value.trim() || 'MacBook';
+    var minPrice = parseFloat(document.getElementById('minPrice').value) || 0;
+    var maxPrice = parseFloat(document.getElementById('maxPrice').value) || 600;
+    var filter = 'price:[' + minPrice + '..' + maxPrice + '],priceCurrency:USD,buyingOptions:{FIXED_PRICE}';
+    var url = 'https://api.ebay.com/buy/browse/v1/item_summary/search?q=' + encodeURIComponent(query) + '&filter=' + encodeURIComponent(filter) + '&sort=newlyListed&limit=50';
+    log('Поиск: "' + query + '" $' + minPrice + '–$' + maxPrice + '...', 'info');
+    return fetch(PROXY + encodeURIComponent(url), {
+      headers: { 'Authorization': 'Bearer ' + token, 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_US' }
+    });
+  }).then(function(r) {
+    if (!r.ok) return r.text().then(function(t) { throw new Error('API ' + r.status + ': ' + t.slice(0,150)); });
+    return r.json();
+  }).then(function(data) {
+    if (data.errors) throw new Error(data.errors[0].message || 'API error');
+    var raw = data.itemSummaries || [];
+    var filtered = raw.filter(function(item) { return !isAccessory(item.title); });
+    var excl = raw.length - filtered.length;
+    if (excl > 0) log('Отфильтровано: ' + excl, 'muted');
+    return filtered.map(function(item) {
+      var ship = '';
+      if (item.shippingOptions && item.shippingOptions[0]) {
+        var sc = item.shippingOptions[0].shippingCost;
+        ship = sc ? (sc.value === '0.00' ? 'Free shipping' : '+$' + sc.value) : '';
+      }
+      return {
+        id: item.itemId,
+        title: item.title || '',
+        url: item.itemWebUrl || '',
+        price: parseFloat((item.price && item.price.value) || 9999),
+        img: (item.thumbnailImages && item.thumbnailImages[0] && item.thumbnailImages[0].imageUrl) || (item.image && item.image.imageUrl) || null,
+        condition: item.condition || '',
+        shipping: ship,
+        seller: (item.seller && item.seller.username) || '',
+        isNew: !seenIds.has(item.itemId)
+      };
+    });
+  });
 }
 
-function stop(){
-
-clearInterval(timer)
-
-log("⏹ остановлено")
-
+function showAlert(item) {
+  document.getElementById('alertTitle').textContent = '🔥 Новый рекорд цены!';
+  document.getElementById('alertDesc').textContent = item.title.slice(0, 80);
+  document.getElementById('alertPrice').textContent = '$' + item.price.toFixed(0);
+  document.getElementById('alertBanner').classList.add('show');
+  if (Notification.permission === 'granted') {
+    new Notification('🔥 Рекордная цена!', { body: '$' + item.price.toFixed(0) + ' — ' + item.title.slice(0,60), tag: 'record' });
+  }
 }
 
+function runFetch() {
+  var pw = document.getElementById('progressWrap');
+  var pb = document.getElementById('progressBar');
+  pw.style.display = 'block'; pb.style.background = ''; pb.style.width = '20%';
+  fetchItems().then(function(fetched) {
+    pb.style.width = '80%';
+    var newItems = 0, newRecord = null;
+    fetched.forEach(function(item) {
+      if (item.isNew) {
+        seenIds.add(item.id); newItems++; newCount++;
+        if (item.price < sessionLowest) { sessionLowest = item.price; newRecord = item; }
+      }
+    });
+    items = fetched; updateCount++;
+    renderItems(); updateStats();
+    pb.style.width = '100%';
+    log('✓ ' + fetched.length + ' устройств, новых: ' + newItems, 'ok');
+    if (newRecord) {
+      showAlert(newRecord);
+      log('🔥 РЕКОРД: $' + newRecord.price + ' — ' + newRecord.title.slice(0,50), 'warn');
+    }
+    setTimeout(function() { pw.style.display = 'none'; }, 800);
+  }).catch(function(e) {
+    pb.style.width = '100%'; pb.style.background = '#ff5252';
+    log('❌ ' + e.message, 'err');
+    setTimeout(function() { pw.style.display = 'none'; }, 2000);
+  });
+}
+
+function renderItems() {
+  var grid = document.getElementById('itemsGrid');
+  if (!items.length) {
+    grid.innerHTML = '<div class="empty"><span class="empty-icon">📭</span>Ничего не найдено.</div>';
+    return;
+  }
+  var sorted = items.slice().sort(function(a,b) {
+    return currentSort === 'price' ? a.price - b.price : (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0);
+  });
+  var minP = Math.min.apply(null, items.map(function(i) { return i.price; }));
+  grid.innerHTML = sorted.map(function(item) {
+    var cheapest = item.price === minP;
+    return '<div class="item-card' + (item.isNew ? ' is-new' : '') + (cheapest ? ' is-cheapest' : '') + '">' +
+      (item.isNew ? '<div class="new-badge">NEW</div>' : '') +
+      (cheapest ? '<div class="cheapest-badge">⭐ ДЕШЕВЛЕ ВСЕХ</div>' : '') +
+      (item.img ? '<img class="item-img" src="' + item.img + '" alt="" onerror="this.outerHTML=\'<div class=item-img-ph>💻</div>\'">' : '<div class="item-img-ph">💻</div>') +
+      '<div><div class="item-title"><a href="' + item.url + '" target="_blank">' + esc(item.title) + '</a></div>' +
+      '<div class="item-tags"><span class="tag tag-buy">Buy It Now</span>' +
+      (item.condition ? '<span class="tag tag-cond">' + esc(item.condition) + '</span>' : '') +
+      (item.shipping ? '<span class="tag tag-ship">' + esc(item.shipping) + '</span>' : '') +
+      '</div></div>' +
+      '<div class="item-price-block"><div class="item-price' + (item.price > 500 ? ' warn' : '') + '">$' + item.price.toFixed(0) + '</div>' +
+      '<a href="' + item.url + '" target="_blank" class="item-buy-btn">КУПИТЬ</a></div></div>';
+  }).join('');
+}
+
+function updateStats() {
+  document.getElementById('statFound').textContent = items.length;
+  document.getElementById('statNew').textContent = newCount;
+  document.getElementById('statUpdates').textContent = updateCount;
+  var prices = items.map(function(i) { return i.price; }).filter(function(p) { return p < 9999; });
+  document.getElementById('statMin').textContent = prices.length ? '$' + Math.min.apply(null, prices).toFixed(0) : '—';
+  document.getElementById('statRecord').textContent = sessionLowest < Infinity ? '$' + sessionLowest.toFixed(0) : '—';
+  document.getElementById('csvBtn').disabled = items.length === 0;
+}
+
+function startCountdown(ms) {
+  clearInterval(countdownId);
+  var end = Date.now() + ms;
+  countdownId = setInterval(function() {
+    var left = Math.max(0, Math.round((end - Date.now()) / 1000));
+    document.getElementById('nextUpdate').innerHTML = 'Следующее: <b>' + Math.floor(left/60) + ':' + String(left%60).padStart(2,'0') + '</b>';
+  }, 1000);
+}
+
+function start() {
+  var appId = document.getElementById('appId').value.trim();
+  var certId = document.getElementById('certId').value.trim();
+  if (!appId) { alert('Введи App ID'); return; }
+  if (!certId) { alert('Введи Cert ID'); return; }
+  var ms = parseInt(document.getElementById('interval').value);
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('stopBtn').disabled = false;
+  document.getElementById('liveDot').classList.remove('off');
+  document.getElementById('liveText').textContent = 'РАБОТАЕТ';
+  if (Notification.permission === 'default') Notification.requestPermission();
+  log('▶ Мониторинг запущен', 'ok');
+  runFetch();
+  intervalId = setInterval(function() { runFetch(); startCountdown(ms); }, ms);
+  startCountdown(ms);
+}
+
+function stop() {
+  clearInterval(intervalId); clearInterval(countdownId); intervalId = null;
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
+  document.getElementById('liveDot').classList.add('off');
+  document.getElementById('liveText').textContent = 'ОСТАНОВЛЕН';
+  document.getElementById('nextUpdate').textContent = '—';
+  log('⏹ Остановлен', 'warn');
+}
+
+try {
+  var saved = localStorage.getItem('ebay_creds');
+  if (saved) {
+    var creds = JSON.parse(saved);
+    if (creds.a) document.getElementById('appId').value = creds.a;
+    if (creds.c) document.getElementById('certId').value = creds.c;
+    log('Учётные данные загружены', 'muted');
+  }
+} catch(e) {}
+
+function saveCredentials() {
+  try {
+    localStorage.setItem('ebay_creds', JSON.stringify({
+      a: document.getElementById('appId').value,
+      c: document.getElementById('certId').value
+    }));
+  } catch(e) {}
+}
+document.getElementById('appId').addEventListener('blur', saveCredentials);
+document.getElementById('certId').addEventListener('blur', saveCredentials);
+
+document.getElementById('startBtn').addEventListener('click', start);
+document.getElementById('stopBtn').addEventListener('click', stop);
+document.getElementById('alertClose').addEventListener('click', function() {
+  document.getElementById('alertBanner').classList.remove('show');
+});
+document.getElementById('sortPrice').addEventListener('click', function() {
+  currentSort = 'price';
+  document.getElementById('sortPrice').classList.add('active');
+  document.getElementById('sortNew').classList.remove('active');
+  renderItems();
+});
+document.getElementById('sortNew').addEventListener('click', function() {
+  currentSort = 'new';
+  document.getElementById('sortNew').classList.add('active');
+  document.getElementById('sortPrice').classList.remove('active');
+  renderItems();
+});
+document.getElementById('csvBtn').addEventListener('click', function() {
+  if (!items.length) return;
+  var rows = [['Title','Price','Condition','Shipping','URL','Seller']].concat(
+    items.map(function(i) { return [i.title, i.price, i.condition, i.shipping, i.url, i.seller]; })
+  );
+  var csv = rows.map(function(r) {
+    return r.map(function(c) { return '"' + String(c || '').replace(/"/g, '""') + '"'; }).join(',');
+  }).join('\n');
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'}));
+  a.download = 'macbook_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  log('📥 CSV сохранён', 'ok');
+});
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(function() { log('✓ PWA готов', 'ok'); })
+    .catch(function(e) { log('SW: ' + e.message, 'muted'); });
+}
+  document.getElementById('startBtn').disabled = false;
+
+var deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e) {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'block';
+  log('📲 Можно установить как приложение', 'info');
+});
+document.getElementById('installBtn').addEventListener('click', function() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(r) {
+    log(r.outcome === 'accepted' ? '✓ Установлено!' : 'Установка отменена', r.outcome === 'accepted' ? 'ok' : 'muted');
+    deferredPrompt = null;
+    document.getElementById('installBtn').style.display = 'none';
+  });
+});
 </script>
-
 </body>
 </html>
